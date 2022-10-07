@@ -1,0 +1,28 @@
+{
+  "name": "upload-file-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "serve": "nodemon ./main.ts",
+    "build": "tsc --project ./"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.14",
+    "@types/formidable": "^2.0.5",
+    "@types/node": "^18.8.2",
+    "@types/uuid": "^8.3.4",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "@types/ws": "^8.5.3",
+    "express": "^4.18.1",
+    "formidable": "^2.0.1",
+    "uuid": "^9.0.0",
+    "ws": "^8.9.0"
+  }
+}
