@@ -45,29 +45,41 @@ function getMessage(mEvent) {
   console.log('message', mEvent.data);
 
   /**
-   * @type {WebSocketPackage<ClientSendMessage | ServerSendInitMessage>}
+   * @type {WebSocketPackage<ServerSendInitMessage | ClientSendMessage>}
    */
-  const {
-    data,
-    type,
-  } = JSON.parse(mEvent.data);
+  const message = JSON.parse(mEvent.data);
 
-  if (type === 'server-init') {
-    serverId = data.id;
-    localStorage.setItem('serverId', data.id);
-    console.log(serverId);
+  if (message.type === 'server-init') {
+    serverInit(message);
   }
 
-  if (type === 'server-send-message') {
-    console.log(data.message);
-    if (!showDom.value) {
-      showDom.value = data.message;
-    } else {
-      showDom.value = `${showDom.value}\n${data.message}`;
-    }
-    keyInDom.value = '';
-    // getLocation();
+  if (message.type === 'server-send-message') {
+    abc(message);
   }
+}
+
+/**
+ *
+ * @param {WebSocketPackage<ClientSendMessage>} message
+ */
+function abc(message) {
+  console.log(message);
+  if (!showDom.value) {
+    showDom.value = message.data.message;
+  } else {
+    showDom.value = `${showDom.value}\n${message.from.name}: ${message.data.message}`;
+  }
+  keyInDom.value = '';
+  // getLocation();
+}
+
+/**
+ *
+ * @param {WebSocketPackage<ServerSendInitMessage>} message
+ */
+function serverInit(message) {
+  serverId = message.data.id;
+  localStorage.setItem('serverId', message.data.id);
 }
 
 function sendMessage() {
@@ -108,12 +120,16 @@ function initWS(options, cb) {
 
   // 監聽連線狀態
   ws.onopen = (ev) => {
-    ws.send(JSON.stringify({
+    /**
+     * @type {WebSocketPackage<ClientSendInitMessage>}
+     */
+    const initData = {
       type: 'client-init',
       data: {
         name: nameDom.value,
       },
-    }));
+    };
+    ws.send(JSON.stringify(initData));
     console.log('open connection');
   }
 

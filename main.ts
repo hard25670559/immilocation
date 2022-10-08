@@ -89,11 +89,7 @@ const server = app.listen(port, () => {
 const wss = new SocketServer({ server });
 
 wss.on('connection', ws => {
-  const from = {
-    id: uuid(),
-    name: '',
-  } as Sender;
-
+  let from: Sender | null;
 
   ws.on('message', data => {
     const clients = wss.clients;
@@ -101,15 +97,18 @@ wss.on('connection', ws => {
     const message = JSON.parse(data.toString());
 
     if (message.type === 'client-init') {
-      serverInit(
-        id, ws, clients,
+      from = serverInit(
+        ws, clients,
         message as WebSocketPackage<ClientSendInitMessage>
       );
     }
 
     if (message.type === 'client-send-message') {
+      if (!from) {
+        throw Error('Not init.');
+      }
       serverSendMessage(
-        id, ws, clients,
+        from, ws, clients,
         message as WebSocketPackage<ClientSendMessage>
       );
     }
@@ -123,28 +122,35 @@ wss.on('connection', ws => {
 
 
 function serverInit(
-  from: Sender,
   target: WebSocket,
   clients: Set<WebSocket>,
-  data: WebSocketPackage<ClientSendInitMessage>,
-) {
+  message: WebSocketPackage<ClientSendInitMessage>,
+): Sender {
+  const from = {
+    name: message.data.name,
+    id: uuid(),
+  } as Sender;
   let welcomeMessage = {
     type: 'server-send-message',
+    from,
     data: {
-      message: `${data.data.name} 已進入！`,
+      message: `${message.data.name} 已進入！`,
     },
   } as WebSocketPackage<ClientSendMessage>;
 
   let initMessage = {
     type: 'server-init',
+    from,
     data: {
-      id,
+      id: from.id,
     }
   } as WebSocketPackage<ServerSendInitMessage>;
 
   clients.forEach(client => client.send(JSON.stringify(welcomeMessage)));
 
   target.send(JSON.stringify(initMessage));
+
+  return from;
 }
 
 function serverSendMessage(
@@ -155,11 +161,10 @@ function serverSendMessage(
 ) {
   const replayMessage = {
     type: 'server-send-message',
+    from,
     data: {
       message: message.data.message,
-      from: {
-
-      }
+      from,
     }
   } as WebSocketPackage<ClientSendMessage>;
   clients.forEach(client => client.send(JSON.stringify(replayMessage)));
