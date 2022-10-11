@@ -1,0 +1,16 @@
+.from.me .message {
+  display: flex;
+  justify-content: right;
+}
+
+.from.other .message {
+  /* background-color: red; */
+}
+
+.from {
+  list-style: none;
+}
+
+.message-container {
+  padding: 0;
+}
